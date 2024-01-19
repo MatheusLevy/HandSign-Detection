@@ -1,6 +1,7 @@
 from collections import deque
 import cv2
 import numpy as np
+import csv
 
 ## Author: https://github.com/kinivi/hand-gesture-recognition-mediapipe/blob/main/utils/cv2fpscalc.py
 class CvFpsCalc(object):
@@ -60,6 +61,9 @@ def bounding_box_from_landmarks(image, landmarks):
     x, y, w, h = cv2.boundingRect(landmark_array)
     return [x, y, x + w, y + h]
 
+def is_number_key(key):
+    return ord('0') <= key <= ord('9') 
+
 def draw_bounding_box(frame, bounding_box):
     cv2.rectangle(frame, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]),
                     (0, 0, 0), 1)
@@ -75,6 +79,13 @@ def convert_landmarks_to_list(image, landmarks):
         landmark_point.append([landmark_x, landmark_y])
 
     return landmark_point
+
+def save_land_mark(landmark_list, label, save_path):
+    flatten_list = [valor for sublista in landmark_list for valor in sublista]
+    with open(save_path, "a+", newline='') as landmark_csv:
+        csv_writer = csv.writer(landmark_csv)
+        flatten_list.insert(0, label)
+        csv_writer.writerow(flatten_list)
 
 def draw_landmarks(image, landmark_point):
     if len(landmark_point) > 0:

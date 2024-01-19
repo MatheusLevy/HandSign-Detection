@@ -7,3 +7,9 @@ num_hands = 1
 # Video Configs
 frame_width= 960
 frame_height= 540
+
+# Save Configs
+landmark_csv_path = r"./landmarks_save/landmarks.csv"
+
+# App configs
+mode = "predict"
