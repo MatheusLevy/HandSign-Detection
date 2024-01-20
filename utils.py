@@ -36,10 +36,18 @@ def draw_fps_on_frame(frame, fps):
                1.0, (255, 255, 255), 2, cv2.LINE_AA)
     return frame
 
-def preprocess_frame(frame, cvFpsCalc):
+def draw_mode_on_frame(frame, mode):
+    cv2.putText(frame, "Mode:" + str(mode), (10, 70), cv2.FONT_HERSHEY_SIMPLEX,
+               1.0, (0, 0, 0), 4, cv2.LINE_AA)
+    cv2.putText(frame, "Mode:" + str(mode), (10, 70), cv2.FONT_HERSHEY_SIMPLEX,
+               1.0, (255, 255, 255), 2, cv2.LINE_AA)
+    return frame
+
+def preprocess_frame(frame, cvFpsCalc, mode):
     frame = cv2.flip(frame, 1)
     fps = cvFpsCalc.get()
     frame = draw_fps_on_frame(frame, fps)
+    frame = draw_mode_on_frame(frame, mode)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return frame
 
@@ -49,10 +57,12 @@ def pressed_key(input_key, key):
 def exist_landmarks(landmarks):
     return landmarks.multi_hand_landmarks is not None
  
-def get_normalized_landmarks(landmarks_flatten_list):
+def get_normalized_landmarks(landmarks_flatten_list, csv_read= True):
     landmarks_relative = []
     base_x, base_y = 0, 0
-    label = landmarks_flatten_list.pop(0)
+    label= None
+    if csv_read:
+        label = landmarks_flatten_list.pop(0)
     base_x, base_y = landmarks_flatten_list[0], landmarks_flatten_list[1] 
     for x, y in zip(landmarks_flatten_list[::2], landmarks_flatten_list[1::2]):
         landmarks_relative.append(x - base_x)
@@ -86,10 +96,11 @@ def bounding_box_from_landmarks(image, landmarks):
 def is_number_key(key):
     return ord('0') <= key <= ord('9') 
 
-def draw_bounding_box(frame, bounding_box):
+def draw_bounding_box(frame, bounding_box, classe):
     cv2.rectangle(frame, (bounding_box[0], bounding_box[1]), (bounding_box[2], bounding_box[3]),
                     (0, 0, 0), 1)
-
+    cv2.putText(frame, str(classe), (bounding_box[0] + 5, bounding_box[1] - 4),
+               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
     return frame
 
 def convert_landmarks_to_list(image, landmarks):

@@ -1,8 +1,8 @@
 import cv2
-import numpy as np
 from utils import *
 import mediapipe as mp 
 from configs import *
+from landmark_classification import HandLandmarkClassificator
 
 def init_hand_landmarks_model():
     mp_hands = mp.solutions.hands
@@ -14,16 +14,17 @@ def init_hand_landmarks_model():
     )
     return mp_hands_landmark_detector
 
-def process_landmarks(frame, landmarks):
-    for hand_landmark, handedness in zip(landmarks.multi_hand_landmarks, landmarks.multi_handedness):
+def process_landmarks(frame, landmarks, classificator):
+    for hand_landmark, _ in zip(landmarks.multi_hand_landmarks, landmarks.multi_handedness):
         hand_bounding_box = bounding_box_from_landmarks(frame, hand_landmark)
-        frame = draw_bounding_box(frame, hand_bounding_box)
         list_of_landmarks = convert_landmarks_to_list(frame, hand_landmark)
+        label_predict = classificator.classify(list_of_landmarks)
         frame = draw_landmarks(frame, list_of_landmarks)
+        frame = draw_bounding_box(frame, hand_bounding_box, label_predict)
         cv2.imshow('frame', frame)
 
 def save_landmarks_mode(frame, landmarks, key):
-    for hand_landmark, handedness in zip(landmarks.multi_hand_landmarks, landmarks.multi_handedness):
+    for hand_landmark, _ in zip(landmarks.multi_hand_landmarks, landmarks.multi_handedness):
         hand_bounding_box = bounding_box_from_landmarks(frame, hand_landmark)
         frame = draw_bounding_box(frame, hand_bounding_box)
         list_of_landmarks = convert_landmarks_to_list(frame, hand_landmark)
@@ -36,16 +37,17 @@ def capture_webcam(cap_width, cap_height):
     webcam = init_video_capture_device(cap_height=cap_height, cap_width=cap_width)
     cvFpsCalc = CvFpsCalc(buffer_len=10)
     mp_hands_landmark_detector = init_hand_landmarks_model()
+    landmark_classificator= HandLandmarkClassificator()
     global mode
 
     while(True):
         _, frame = webcam.read()
         input_key = cv2.waitKey(10)
-        frame = preprocess_frame(frame, cvFpsCalc=cvFpsCalc)
+        frame = preprocess_frame(frame, cvFpsCalc, mode)
         landmarks = mp_hands_landmark_detector.process(frame)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         if exist_landmarks(landmarks) and mode ==  "predict":
-            process_landmarks(frame, landmarks=landmarks)
+            process_landmarks(frame, landmarks, landmark_classificator)
         elif exist_landmarks(landmarks) and mode == "save":
             save_landmarks_mode(frame, landmarks, input_key)
         else:
@@ -56,15 +58,12 @@ def capture_webcam(cap_width, cap_height):
         
         if pressed_key(input_key, 's'):
             mode = "save"
-            print("save_mode")
             
         if pressed_key(input_key, 'p'):
             mode= "predict"
 
     webcam.release()
     cv2.destroyAllWindows()
-
-
 
 capture_webcam(frame_width, frame_height)
 

@@ -4,6 +4,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from utils import read_csv_lines, get_normalized_landmarks
 from configs import landmark_csv_path
+from configs import model_save_path
 
 SEED = 1234567
 number_of_classes= 3
@@ -32,7 +33,6 @@ model = tf.keras.models.Sequential([
 
 model.summary() 
 
-model_save_path= r"./landmark_classification_model/handlandmark_classification_model.hdf5"
 cp_callback = tf.keras.callbacks.ModelCheckpoint(
     model_save_path, verbose=1, save_weights_only=False)
 es_callback = tf.keras.callbacks.EarlyStopping(patience=20, verbose=1)

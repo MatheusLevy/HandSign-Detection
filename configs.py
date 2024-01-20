@@ -10,6 +10,7 @@ frame_height= 540
 
 # Save Configs
 landmark_csv_path = r"./landmarks_save/landmarks.csv"
-
+model_save_path= r"./landmark_classification_model/handlandmark_classification_model.hdf5"
+labels_path = r"./landmark_classification_model\labels.csv"
 # App configs
 mode = "predict"
