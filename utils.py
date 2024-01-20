@@ -2,6 +2,7 @@ from collections import deque
 import cv2
 import numpy as np
 import csv
+import copy
 
 ## Author: https://github.com/kinivi/hand-gesture-recognition-mediapipe/blob/main/utils/cv2fpscalc.py
 class CvFpsCalc(object):
@@ -42,11 +43,32 @@ def preprocess_frame(frame, cvFpsCalc):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return frame
 
-def pressed_key(key):
-    return cv2.waitKey(10) & 0xFF == ord(key)
+def pressed_key(input_key, key):
+    return input_key & 0xFF == ord(key)
 
 def exist_landmarks(landmarks):
     return landmarks.multi_hand_landmarks is not None
+ 
+def get_normalized_landmarks(landmarks_flatten_list):
+    landmarks_relative = []
+    base_x, base_y = 0, 0
+    label = landmarks_flatten_list.pop(0)
+    base_x, base_y = landmarks_flatten_list[0], landmarks_flatten_list[1] 
+    for x, y in zip(landmarks_flatten_list[::2], landmarks_flatten_list[1::2]):
+        landmarks_relative.append(x - base_x)
+        landmarks_relative.append(y - base_y)
+    
+    max_value= max(landmarks_relative, key=abs)
+    landmarks_normalized = [valor/max_value for valor in landmarks_relative]
+    return landmarks_normalized, label
+
+def read_csv_lines(path):
+    lines = []
+    with open(path, newline='') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for line in csv_reader:
+            lines.append(list(map(int, line)))
+    return lines
 
 def bounding_box_from_landmarks(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
